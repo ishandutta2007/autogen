@@ -317,7 +317,7 @@ chunks of documents as new context from the Retrieval-Augmented User Proxy. Othe
 generates new code or text based on the feedback and chat history. If the LLM fails to generate
 an answer, it replies with “Update Context” again. This process can be repeated several times.
 The conversation terminates if no more documents are available for the context.</li></ol><h2>Basic Usage of RAG Agents</h2><ol start="0"><li>Install dependencies</li></ol><p>Please install pyautogen with the <!-- -->[retrievechat]<!-- --> option before using RAG agents.</p><pre><code class="language-bash">pip install &quot;pyautogen[retrievechat]&quot;
-</code></pre><ol><li>Import Agents</li></ol><pre><code class="language-python">from autogen
+</code></pre><ol><li>Import Agents</li></ol><pre><code class="language-python">import autogen
 from autogen.agentchat.contrib.retrieve_assistant_agent import RetrieveAssistantAgent
 from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
 </code></pre><ol start="2"><li>Create an &#x27;RetrieveAssistantAgent&#x27; instance named &quot;assistant&quot; and an &#x27;RetrieveUserProxyAgent&#x27; instance named &quot;ragproxyagent&quot;</li></ol><pre><code class="language-python">assistant = RetrieveAssistantAgent(
