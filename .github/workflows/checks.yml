@@ -1,0 +1,289 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
+      - staging
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe fmt --check
+        working-directory: ./python
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe lint
+        working-directory: ./python
+
+  mypy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          [
+            "./packages/autogen-core",
+            "./packages/autogen-magentic-one",
+            "./packages/agbench",
+            "./packages/autogen-ext",
+            "./packages/autogen-agentchat",
+            "./packages/magentic-one-cli",
+          ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} mypy
+        working-directory: ./python
+
+  pyright:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          [
+            "./packages/autogen-core",
+            "./packages/autogen-magentic-one",
+            "./packages/agbench",
+            "./packages/autogen-ext",
+            "./packages/autogen-agentchat",
+            "./packages/magentic-one-cli",
+          ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} pyright
+        working-directory: ./python
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          [
+            "./packages/autogen-core",
+            "./packages/autogen-magentic-one",
+            "./packages/autogen-ext",
+            "./packages/autogen-agentchat",
+          ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run uv sync
+        run: |
+          uv sync --locked --all-extras
+
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} test
+        working-directory: ./python
+
+  codecov:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          [
+            "./packages/autogen-core",
+            "./packages/autogen-magentic-one",
+            "./packages/autogen-ext",
+            "./packages/autogen-agentchat",
+          ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run uv sync
+        run: |
+          uv sync --locked --all-extras
+
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} coverage
+        working-directory: ./python
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true # optional (default = false)
+          files: ${{ matrix.package }}/coverage.xml # optional
+          flags: unittests # optional
+          name: codecov-umbrella # optional
+          verbose: true # optional (default = false)
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  docs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ["./packages/autogen-core"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} docs-check
+        working-directory: ./python
+
+  docs-example-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ["./packages/autogen-core"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe --directory ${{ matrix.package }} docs-check-examples
+        working-directory: ./python
+
+  samples-code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe samples-code-check
+        working-directory: ./python
+
+  markdown-code-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe markdown-code-lint
+        working-directory: ./python
+
+  check-proto-changes-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.5.18"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --locked --all-extras
+        working-directory: ./python
+      - name: Run task
+        run: |
+          source ${{ github.workspace }}/python/.venv/bin/activate
+          poe gen-proto
+          poe gen-test-proto
+        working-directory: ./python
+      - name: Check if there are uncommited changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Process changes
+        if: steps.changes.outputs.changed == 1
+        run: echo "There are changes in the proto files. Please commit them."
